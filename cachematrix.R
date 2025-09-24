@@ -1,13 +1,14 @@
-# This little script contains two functions (makeChaceMatrix and cacheSolve)
+# This little script contains two functions (makeMatrix and cacheInverse)
 # that have the purpose to create and store a matrix and its inverse.
 
-# This first function, makeCacheMatrix, creates a special object that stores: 
-# a matrix and its cached inverse (if already computed).
+# This first function, makeMatrix, creates a special object that stores: 
+# - a matrix
+# - its cached inverse (if already computed)
 
 makeMatrix <- function(x = matrix()) {
-      inv <- NULL # stores the inverse and starts empty
+      inv <- NULL # stores the inverse, starts empty
       
-      # function to set the matrix and reset the chached inverse value
+      # function to set the matrix and reset the cached inverse value
       set <- function(y) {
             x <<- y
             inv <<- NULL
@@ -22,7 +23,7 @@ makeMatrix <- function(x = matrix()) {
       # function to get the inverse
       getInverse <- function() inv
       
-      # return a list of functions
+      # return a list of the above four functions
       list(set = set,
            get = get,
            setInverse = setInverse,
@@ -32,20 +33,32 @@ makeMatrix <- function(x = matrix()) {
 
 # This second function, cacheInverse, does two things:
 # - checks if a matrix inverse is already cached and, if so, returns it;
-# - if not, compute the inverse, caches it and then returns it.
+# - if not, computes the inverse, caches it, and then returns it.
 
 cacheInverse <- function(x, ...) {
-      inv <- x$getInverse() 
       # retrieves the cached inverse (if it exists) from our special object
+      inv <- x$getInverse() 
       
-      if(!is.null(inv)) {
-            message("Here is your inverse matrix:")
-            return(inv)
+      if (!is.null(inv)) {
+            message("Here is your cached inverse matrix:")
+            return(inv)  # return cached inverse
       }
       
-      # if there's no cached inverse, it computes and returns the inverse
+      # if there's no cached inverse, it first retrieves the matrix
       mat <- x$get()
-      inv <- solve(mat, ...)  # computes the inverse  
-      x¢getInverse(inv)       # chaces it
-      inv                     # displays it
+      
+      # some sanity checks: the input must be a square, invertible matrix
+      if (!is.matrix(mat)) stop("Input is not a matrix.")
+      if (nrow(mat) != ncol(mat)) stop("Matrix must be square.")
+      if (abs(det(mat)) < .Machine$double.eps) stop("Matrix is singular (not invertible).")
+      
+      # compute the inverse
+      inv <- solve(mat, ...)   
+      
+      # cache the computed inverse
+      x$setInverse(inv)        
+      
+      # announce and return the newly computed inverse
+      message("Here is your inverse matrix:")
+      inv
 }
